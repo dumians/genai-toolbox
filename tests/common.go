@@ -213,7 +213,6 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 		PostgresListPGSettingsToolKind          = "postgres-list-pg-settings"
 		PostgresListDatabaseStatsToolKind       = "postgres-list-database-stats"
 		PostgresListRolesToolKind               = "postgres-list-roles"
-		PostgresListStoredProcedureToolKind     = "postgres-list-stored-procedure"
 	)
 
 	tools, ok := config["tools"].(map[string]any)
@@ -309,11 +308,6 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 
 	tools["list_roles"] = map[string]any{
 		"kind":   PostgresListRolesToolKind,
-		"source": "my-instance",
-	}
-
-	tools["list_stored_procedure"] = map[string]any{
-		"kind":   PostgresListStoredProcedureToolKind,
 		"source": "my-instance",
 	}
 	config["tools"] = tools
@@ -943,47 +937,48 @@ func TestCloudSQLMySQL_IPTypeParsingFromYAML(t *testing.T) {
 
 // Finds and drops all tables in a postgres database.
 func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
-	// query := `
-	// SELECT table_name FROM information_schema.tables
-	// WHERE table_schema = 'public' AND table_type = 'BASE TABLE';`
+	query := `
+	SELECT table_name FROM information_schema.tables
+	WHERE table_schema = 'public' AND table_type = 'BASE TABLE';`
 
-	// rows, err := pool.Query(ctx, query)
-	// if err != nil {
-	// 	t.Fatalf("Failed to query for all tables in 'public' schema: %v", err)
-	// }
-	// defer rows.Close()
+	rows, err := pool.Query(ctx, query)
+	if err != nil {
+		t.Fatalf("Failed to query for all tables in 'public' schema: %v", err)
+	}
+	defer rows.Close()
 
-	// var tablesToDrop []string
-	// for rows.Next() {
-	// 	var tableName string
-	// 	if err := rows.Scan(&tableName); err != nil {
-	// 		t.Errorf("Failed to scan table name: %v", err)
-	// 		continue
-	// 	}
-	// 	tablesToDrop = append(tablesToDrop, fmt.Sprintf("public.%q", tableName))
-	// }
+	var tablesToDrop []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			t.Errorf("Failed to scan table name: %v", err)
+			continue
+		}
+		tablesToDrop = append(tablesToDrop, fmt.Sprintf("public.%q", tableName))
+	}
 
-	// if len(tablesToDrop) == 0 {
-	// 	return
-	// }
+	if len(tablesToDrop) == 0 {
+		return
+	}
 
-	// dropQuery := fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", strings.Join(tablesToDrop, ", "))
+	dropQuery := fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", strings.Join(tablesToDrop, ", "))
 
-	// if _, err := pool.Exec(ctx, dropQuery); err != nil {
-	// 	t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
-	// }
-	fmt.println("drop schema started --------------")
-	// 1. Drop the entire public schema (this kills tables, views, types, etc.)
-    dropSchema := "DROP SCHEMA public CASCADE;"
-    // 2. Recreate the empty public schema
-    createSchema := "CREATE SCHEMA public;"
-    // 3. Grant permissions back (Postgres default)
-    grantPublic := "GRANT ALL ON SCHEMA public TO public;"
+	if _, err := pool.Exec(ctx, dropQuery); err != nil {
+		t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
+	}
 
-    _, err := pool.Exec(ctx, dropSchema + createSchema + grantPublic)
-    if err != nil {
-        t.Fatalf("Failed to nuclear-wipe the public schema: %v", err)
-    }
+	fmt.println("drop schema")
+	// // 1. Drop the entire public schema (this kills tables, views, types, etc.)
+    // dropSchema := "DROP SCHEMA public CASCADE;"
+    // // 2. Recreate the empty public schema
+    // createSchema := "CREATE SCHEMA public;"
+    // // 3. Grant permissions back (Postgres default)
+    // grantPublic := "GRANT ALL ON SCHEMA public TO public;"
+
+    // _, err := pool.Exec(ctx, dropSchema + createSchema + grantPublic)
+    // if err != nil {
+    //     t.Fatalf("Failed to nuclear-wipe the public schema: %v", err)
+    // }
 }
 
 // Finds and drops all tables in a mysql database.
