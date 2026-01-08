@@ -937,6 +937,8 @@ func TestCloudSQLMySQL_IPTypeParsingFromYAML(t *testing.T) {
 
 // Finds and drops all tables in a postgres database.
 func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	// fmt.println("")
+	t.Logf("in cleanupPostgrestTables");
 	query := `
 	SELECT table_name FROM information_schema.tables
 	WHERE table_schema = 'public' AND table_type = 'BASE TABLE';`
@@ -967,7 +969,6 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 		t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
 	}
 
-	fmt.println("drop schema")
 	// // 1. Drop the entire public schema (this kills tables, views, types, etc.)
     // dropSchema := "DROP SCHEMA public CASCADE;"
     // // 2. Recreate the empty public schema
