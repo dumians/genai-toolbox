@@ -213,6 +213,7 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 		PostgresListPGSettingsToolKind          = "postgres-list-pg-settings"
 		PostgresListDatabaseStatsToolKind       = "postgres-list-database-stats"
 		PostgresListRolesToolKind               = "postgres-list-roles"
+		PostgresListStoredProcedureToolKind     = "postgres-list-stored-procedure"
 	)
 
 	tools, ok := config["tools"].(map[string]any)
@@ -308,6 +309,11 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 
 	tools["list_roles"] = map[string]any{
 		"kind":   PostgresListRolesToolKind,
+		"source": "my-instance",
+	}
+
+	tools["list_stored_procedure"] = map[string]any{
+		"kind":   PostgresListStoredProcedureToolKind,
 		"source": "my-instance",
 	}
 	config["tools"] = tools
@@ -966,8 +972,6 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 	// if _, err := pool.Exec(ctx, dropQuery); err != nil {
 	// 	t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
 	// }
-
-	
 	fmt.println("drop schema started --------------")
 	// 1. Drop the entire public schema (this kills tables, views, types, etc.)
     dropSchema := "DROP SCHEMA public CASCADE;"
