@@ -967,7 +967,7 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 	// 	t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
 	// }
 
-	
+	fmt.println("drop schema started --------------")
 	// 1. Drop the entire public schema (this kills tables, views, types, etc.)
     dropSchema := "DROP SCHEMA public CASCADE;"
     // 2. Recreate the empty public schema
