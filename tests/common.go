@@ -960,6 +960,7 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 	}
 
 	if len(tablesToDrop) == 0 {
+		t.Logf("No tables to drop in 'public' schema")
 		return
 	}
 
@@ -967,6 +968,9 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 
 	if _, err := pool.Exec(ctx, dropQuery); err != nil {
 		t.Fatalf("Failed to drop all tables in 'public' schema: %v", err)
+	}
+	else { {
+		t.Logf("Dropped tables in 'public' schema: %s", strings.Join(tablesToDrop, ", "))
 	}
 
 	// // 1. Drop the entire public schema (this kills tables, views, types, etc.)
