@@ -213,12 +213,16 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 		PostgresListPGSettingsToolKind          = "postgres-list-pg-settings"
 		PostgresListDatabaseStatsToolKind       = "postgres-list-database-stats"
 		PostgresListRolesToolKind               = "postgres-list-roles"
+		PostgresListStoredProcedureToolKind     = "postgres-list-stored-procedure"
+
+
 	)
 
 	tools, ok := config["tools"].(map[string]any)
 	if !ok {
 		t.Fatalf("unable to get tools from config")
 	}
+
 	tools["list_tables"] = map[string]any{
 		"kind":        PostgresListTablesToolKind,
 		"source":      "my-instance",
@@ -308,6 +312,11 @@ func AddPostgresPrebuiltConfig(t *testing.T, config map[string]any) map[string]a
 
 	tools["list_roles"] = map[string]any{
 		"kind":   PostgresListRolesToolKind,
+		"source": "my-instance",
+	}
+
+	tools["list_stored_procedure"] = map[string]any{
+		"kind":   PostgresListStoredProcedureToolKind,
 		"source": "my-instance",
 	}
 	config["tools"] = tools
