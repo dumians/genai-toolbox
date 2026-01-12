@@ -972,7 +972,8 @@ func CleanupPostgresTables(t *testing.T, ctx context.Context, pool *pgxpool.Pool
 		t.Logf("No tables to drop in 'public' schema")
 		return
 	}
-
+	t.Logf("Tables to drop in 'public' schema: %s", strings.Join(tablesToDrop, ", "))
+	
 	dropQuery := fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", strings.Join(tablesToDrop, ", "))
 
 	if _, err := pool.Exec(ctx, dropQuery); err != nil {
