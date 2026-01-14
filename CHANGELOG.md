@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/googleapis/genai-toolbox/compare/v0.25.0...v0.26.0) (2026-01-14)
+
+
+### Features
+
+* **bigquery:** Make maximum rows returned from queries configurable ([#2262](https://github.com/googleapis/genai-toolbox/issues/2262)) ([4abf0c3](https://github.com/googleapis/genai-toolbox/commit/4abf0c39e717d53b22cc61efb65e09928c598236))
+
 ## [0.25.0](https://github.com/googleapis/genai-toolbox/compare/v0.24.0...v0.25.0) (2026-01-08)
 
 
