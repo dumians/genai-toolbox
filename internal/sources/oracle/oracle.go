@@ -143,10 +143,15 @@ func (s *Source) OracleDB() *sql.DB {
 }
 
 func (s *Source) RunSQL(ctx context.Context, statement string, params []any, readOnly bool) (any, error) {
+	isPLSQL := isPLSQLBlock(statement)
 	if !readOnly {
 		result, err := s.OracleDB().ExecContext(ctx, statement, params...)
 		if err != nil {
 			return nil, fmt.Errorf("unable to execute DML statement: %w", err)
+		}
+
+		if isPLSQL {
+			return []any{}, nil
 		}
 
 		rowsAffected, err := result.RowsAffected()
@@ -158,6 +163,9 @@ func (s *Source) RunSQL(ctx context.Context, statement string, params []any, rea
 			"status":        "success",
 			"rows_affected": rowsAffected,
 		}, nil
+	}
+	if isPLSQL {
+		return nil, fmt.Errorf("PL/SQL blocks require 'readOnly: false'")
 	}
 	rows, err := s.OracleDB().QueryContext(ctx, statement, params...)
 	if err != nil {
@@ -361,4 +369,39 @@ func initOracleConnection(ctx context.Context, tracer trace.Tracer, config Confi
 	}
 
 	return db, nil
+}
+
+func isPLSQLBlock(statement string) bool {
+	firstWord := getFirstWord(statement)
+	upper := strings.ToUpper(firstWord)
+	return upper == "BEGIN" || upper == "DECLARE"
+}
+
+func getFirstWord(sql string) string {
+	sql = strings.TrimSpace(sql)
+	for {
+		if strings.HasPrefix(sql, "--") {
+			idx := strings.Index(sql, "\n")
+			if idx == -1 {
+				return ""
+			}
+			sql = strings.TrimSpace(sql[idx+1:])
+			continue
+		}
+		if strings.HasPrefix(sql, "/*") {
+			idx := strings.Index(sql, "*/")
+			if idx == -1 {
+				return ""
+			}
+			sql = strings.TrimSpace(sql[idx+2:])
+			continue
+		}
+		break
+	}
+
+	fields := strings.Fields(sql)
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
 }
