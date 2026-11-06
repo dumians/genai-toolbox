@@ -114,7 +114,7 @@ password: ${PASSWORD}
 
 ### Using an Oracle Wallet
 
-Oracle Wallet allows you to store credentails used for database connection. Depending whether you are using an OCI-based driver, the wallet configuration is different.
+Oracle Wallet allows you to store credentials used for database connection. Depending whether you are using an OCI-based driver, the wallet configuration is different.
 
 #### Pure Go Driver (`useOCI: false`) - Oracle Wallet
 
@@ -134,17 +134,29 @@ walletLocation: "/path/to/my/wallet/directory"
 
 #### OCI-Based Driver (`useOCI: true`) - Oracle Wallet
 
-For the OCI-based driver, wallet authentication is triggered by setting tnsAdmin to the wallet directory and connecting via a tnsAlias. 
+For the OCI-based driver, wallet authentication is triggered by setting `tnsAdmin` to the wallet directory and connecting via a `tnsAlias`. 
+
+If the wallet is configured as a Secure External Password Store (SEPS) or uses SSL client certificates for database login (External Authentication), `user` and `password` are optional and can be omitted:
+
+```yaml
+kind: source
+name: oci-wallet-passwordless
+type: oracle
+tnsAlias: "WALLET_DB_ALIAS"
+tnsAdmin: "/opt/oracle/wallet" # Directory containing tnsnames.ora, sqlnet.ora, and wallet files
+useOCI: true
+```
+
+If the wallet is only used for transport encryption (SSL/TLS) and the database still requires explicit credential validation, you must provide both `user` and `password`:
 
 ```yaml
 kind: source
 name: oci-wallet
 type: oracle
-connectionString: "127.0.0.1:1521/XEPDB1"
+tnsAlias: "WALLET_DB_ALIAS"
+tnsAdmin: "/opt/oracle/wallet"
 user: ${USER_NAME}
 password: ${PASSWORD}
-tnsAlias: "WALLET_DB_ALIAS"
-tnsAdmin: "/opt/oracle/wallet" # Directory containing tnsnames.ora, sqlnet.ora, and wallet files
 useOCI: true
 ```
 
@@ -158,8 +170,8 @@ instead of hardcoding your secrets into the configuration file.
 | **field**        | **type** | **required** | **description**                                                                                                                                                                         |
 |------------------|:--------:|:------------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | type             |  string  |     true     | Must be "oracle".                                                                                                                                                                       |
-| user             |  string  |     true     | Name of the Oracle user to connect as (e.g. "my-oracle-user").                                                                                                                          |
-| password         |  string  |     true     | Password of the Oracle user (e.g. "my-password").                                                                                                                                       |
+| user             |  string  |    false     | Name of the Oracle user to connect as. Required unless using an Oracle Wallet (`tnsAdmin` with `useOCI: true` or `walletLocation` with `useOCI: false`).                                |
+| password         |  string  |    false     | Password of the Oracle user. Required unless using an Oracle Wallet (`tnsAdmin` with `useOCI: true` or `walletLocation` with `useOCI: false`).                                          |
 | host             |  string  |    false     | IP address or hostname to connect to (e.g. "127.0.0.1"). Required if not using `connectionString` or `tnsAlias`.                                                                        |
 | port             | integer  |    false     | Port to connect to (e.g. "1521"). Required if not using `connectionString` or `tnsAlias`.                                                                                               |
 | serviceName      |  string  |    false     | The Oracle service name of the database to connect to. Required if not using `connectionString` or `tnsAlias`.                                                                          |
